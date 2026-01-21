@@ -1,46 +1,70 @@
-import { dummyData } from '@/data';
-import { create } from 'zustand'
-
+import { create } from "zustand"
+import { dummyData } from "@/data"
 
 export type IngredientType = {
-    name: string;
-    unit: "mg" | "l" | "ml" | "nos"
-    quantity: number
+  name: string
+  unit: "mg" | "l" | "ml" | "nos"
+  quantity: number
 }
 
 export type RecipeType = {
-    id: string
-    title: string
-    description: string
-    ingredients: IngredientType[]
+  image: string
+  id: string
+  title: string
+  description: string
+  ingredients: IngredientType[]
+  isArchived: boolean
 }
 
 interface RecipeState {
-    recipes: RecipeType[]
-
-    addRecipe: (recipe: RecipeType) => void;
-    findRecipe: (id: string) => RecipeType | undefined;
+  recipes: RecipeType[]
+  searchQuery: string
+  setSearchQuery: (query: string) => void
+  addRecipe: (recipe: RecipeType) => void
+  deleteRecipe: (id: string) => void
+  archiveRecipe: (id: string) => void
+  unarchiveRecipe: (id: string) => void
+  findRecipe: (id: string) => RecipeType | undefined
 }
 
-export const useRecipeStore = create<RecipeState>()((set, get) => {
-    return {
-        recipes: dummyData,
+export const useRecipeStore = create<RecipeState>((set, get) => ({
+  recipes: dummyData,
+  searchQuery: "",
 
-        addRecipe: (recipe: RecipeType) => {
-            const currentRecpie: RecipeType[] = get().recipes
-            set(
-                {
-                    recipes: [...currentRecpie, recipe]
-                }
-            )
-        },
+  setSearchQuery: (query) => set({ searchQuery: query }),
 
-        findRecipe: (id: string) => {
-            let recipe = undefined
-            const recipes = get().recipes
-            recipe = recipes.find((recipe) => recipe.id === id)
-            return recipe
-        }
-    }
-})
+  addRecipe: (recipe) =>
+    set((state) => ({
+      recipes: [...state.recipes, recipe],
+    })),
 
+  deleteRecipe: (id) =>
+    set((state) => ({
+      recipes: state.recipes.filter(
+        (recipe) => recipe.id !== id
+      ),
+    })),
+
+  archiveRecipe: (id) =>
+    set((state) => ({
+      recipes: state.recipes.map((recipe) =>
+        recipe.id === id
+          ? { ...recipe, isArchived: true }
+          : recipe
+      ),
+    })),
+
+  unarchiveRecipe: (id) =>
+    set((state) => ({
+      recipes: state.recipes.map((recipe) =>
+        recipe.id === id
+          ? { ...recipe, isArchived: false }
+          : recipe
+      ),
+    })),
+
+  findRecipe: (id) =>
+    get().recipes.find(
+      (recipe) => recipe.id === id
+    ),
+}))
